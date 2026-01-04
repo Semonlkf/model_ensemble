@@ -41,17 +41,18 @@ class Model:
     @staticmethod
     def load_llama_params(model_name="llama-2-7b"):
         model_paths = {
-            "llama-3.1-8b": "/models/llama-3-1-8b-instruct",
-            "llama-3.1-70b": "/models/llama-3-1-70b-instruct", 
-            "llama-3.1-405b": "/models/llama-3-1-405b-instruct",
-            "Qwen2.5-7B": "/models/qwen-2-5-7b-instruct",
-            "Qwen2.5-72B": "/models/qwen-2-5-72b-instruct",
-            "Mistral-7B-Instruct-v0.3": "/models/mistral-7b-instruct-v0.3",
-            "QwQ-32B-Preview": "/models/qwq-32b-preview",
-            "Qwen2.5-7B-self-tune": "/models/qwen-2-5-7b/model_sft",
-            "Qwen2.5-7B-sft": "/models/qwen-2-5-7b/qwen-2-5-7b-sft",
-            "Qwen2.5-7B-dpo": "/models/qwen-2-5-7b/qwen-2-5-7b-dpo",
-            "llama-3.1-8b-dpo": "/models/llama-3-1-8b/llama-3-1-8b-dpo",
+            "Qwen2.5-0.5B": "/home/share/models/Qwen2.5-0.5B-Instruct"
+            # "llama-3.1-8b": "/models/llama-3-1-8b-instruct",
+            # "llama-3.1-70b": "/models/llama-3-1-70b-instruct", 
+            # "llama-3.1-405b": "/models/llama-3-1-405b-instruct",
+            # "Qwen2.5-7B": "/models/qwen-2-5-7b-instruct",
+            # "Qwen2.5-72B": "/models/qwen-2-5-72b-instruct",
+            # "Mistral-7B-Instruct-v0.3": "/models/mistral-7b-instruct-v0.3",
+            # "QwQ-32B-Preview": "/models/qwq-32b-preview",
+            # "Qwen2.5-7B-self-tune": "/models/qwen-2-5-7b/model_sft",
+            # "Qwen2.5-7B-sft": "/models/qwen-2-5-7b/qwen-2-5-7b-sft",
+            # "Qwen2.5-7B-dpo": "/models/qwen-2-5-7b/qwen-2-5-7b-dpo",
+            # "llama-3.1-8b-dpo": "/models/llama-3-1-8b/llama-3-1-8b-dpo",
         }
         model_path = model_paths.get(model_name)
         if not model_path:

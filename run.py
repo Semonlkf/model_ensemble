@@ -163,11 +163,12 @@ def run(args):
         
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--backend', type=str, choices=['gpt-4', 'gpt-3.5-turbo', "gpt-4o","llama-3.1-405b" , "llama-3.1-70b","llama-3.1-8b", "Qwen2.5-7B", "Qwen2.5-72B",  "Mistral-7B-Instruct-v0.3", "Qwen2.5-7B-self-tune","Qwen2.5-7B-sft","Qwen2.5-7B-dpo","llama-3.1-8b-dpo",  "QwQ-32B-Preview"], default="gpt-4o")
-    parser.add_argument('--backend_prm', type=str, choices=['gpt-4', 'gpt-3.5-turbo', "gpt-4o","llama-3.1-405b" , "llama-3.1-70b","llama-3.1-8b", "Qwen2.5-7B", "Qwen2.5-72B",  "Mistral-7B-Instruct-v0.3", "internlm2_5-step-prover-critic",  "internlm2-1_8b-reward", "QwQ-32B-Preview"], default="gpt-4o")
-    parser.add_argument("--port", type=int, default=8001, help="Port for the FastAPI service (default is 8001)")
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_pool_config', type=str,default="configs/3model.yaml", help='Use model pool')
+    parser.add_argument('--backend', type=str, default="gpt-4o", help= 'the model name if u use one model to tts')
+    parser.add_argument('--backend_prm', type=str, choices=['gpt-4', 'gpt-3.5-turbo', "gpt-4o","llama-3.1-405b" , "llama-3.1-70b","llama-3.1-8b", "Qwen2.5-7B", "Qwen2.5-72B",  "Mistral-7B-Instruct-v0.3", "internlm2_5-step-prover-critic",  "internlm2-1_8b-reward", "QwQ-32B-Preview","Qwen2.5-0.5B"], default="gpt-4o")
+    parser.add_argument("--port", type=int, default=8001, help="Port for the FastAPI service (default is 8001)")
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--top_p', type=float, default=0.9)
     parser.add_argument('--task', type=str, required=True, choices=['game24', 'text', 'crosswords', "bamboogle","strategyqa",'hotpotqa','gsm8k','gsm8k_perb',"gsm_hard","MATH500", "fever","prontoqa","humaneval"])
@@ -184,9 +185,6 @@ def parse_args():
     parser.add_argument('--single_agent_method', type=str, default="naive", choices=['naive', 'greedy', 'mcts', 'majority', 'beamsearch', 'selfconsistency'])
     parser.add_argument('--trick_type', type=str, default='', help='Specify the type of trick')
     parser.add_argument('--baseline', type=str, default='', help='Specify the type of baseline')
-    
-    
-    
     parser.add_argument('--score_criterion', type=str, default='max', help='MCTS and beam search argument')
     parser.add_argument('--inference_gpu_memory_utilization', type=float, default=0.9, help="GPU memory utilization for inference model")
     parser.add_argument('--reward_gpu_memory_utilization', type=float, default=0.9, help="GPU memory utilization for reward model")
@@ -201,6 +199,7 @@ def parse_args():
     parser.add_argument('--c_puct', type=float, default=1.25, help='C puct parameter')
     parser.add_argument('--num_iteration', type=int, default=3, help='Number of iterations for self refine')
     parser.add_argument('--agent_framework_version', type=str, default='v1.0', help='Name  of the agent framework version')
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
     args = parser.parse_args()
     return args
 
@@ -208,5 +207,10 @@ if __name__ == '__main__':
     torch.cuda.init()
     mp.set_start_method('spawn') 
     args = parse_args()
+    if args.debug:
+        import debugpy # 导入包，可以放在前面
+        debugpy.listen(('0.0.0.0', 5678)) 
+        debugpy.wait_for_client() 
+        debugpy.breakpoint() 
     print(args)
     run(args)

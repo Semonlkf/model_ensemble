@@ -1,6 +1,7 @@
 import numpy as np
 from functools import partial
-from models.base_model import gpt
+#from models.base_model import gpt
+from models.llm_pool import LLMModelPool
 import concurrent.futures
 from collections import Counter
 from methods.method_utils.str_utils import extract_last_question, extract_last_answer
@@ -9,6 +10,7 @@ from prompts.binary_evaluate import *
 import random
 import torch.nn as nn
 import torch
+import yaml
 class InferTimeComputation:
     def __init__(self, task, args):
         self.task = task
@@ -27,15 +29,28 @@ class InferTimeComputation:
         # load inference model
 
         #print("vllm only use {gpu_memory_utilization}% GPU memory repctively for inference model".format(gpu_memory_utilization = args.inference_gpu_memory_utilization * 100)) 
-        self.gpt = partial(gpt, model=args.backend, temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_tokens, gpu_memory_utilization = args.inference_gpu_memory_utilization)
+        #self.gpt = partial(gpt, model=args.backend, temperature=args.temperature, top_p=args.top_p, max_tokens=args.max_tokens, gpu_memory_utilization = args.inference_gpu_memory_utilization)
+        self.llm_pool = LLMModelPool()
+        # 读入模型配置文件，注册模型
+        with open(self.args.model_pool_config, 'r') as f:
+            model_pool_config = yaml.load(f, Loader=yaml.FullLoader)
+        
+        for model in model_pool_config['models']:
+            self.llm_pool.register_model(model['name'],model['config'])
+        
+        self.gpt = partial(self.llm_pool.generate, model_name=args.backend, temperature=args.temperature,top_p=args.top_p, max_tokens=args.max_tokens)
 
-        # load reward model
+        self.model_names = self.llm_pool.get_all_model_names()
         if args.method_evaluate not in ['value', 'vote',"random","self_process_value", "self_result_value"]:
-            from models.reward_models.request_gpt import request_gpt
-            if args.backend_prm.startswith("Xinternlm"):
-                self.prm = partial(gpt, model=args.backend_prm)
-            elif args.backend_prm == "gpt-4o" or args.backend_prm.startswith("llama") or args.backend_prm.startswith("Qwen2") or args.backend_prm.startswith("Mistral") or args.backend_prm.startswith("internlm") or args.backend_prm.startswith("QwQ"):
-                self.prm = partial(request_gpt, model=args.backend_prm, temperature=args.temperature, max_tokens=args.max_tokens, port = args.port,gpu_memory_utilization = args.reward_gpu_memory_utilization)
+            self.prm = partial(self.llm_pool.get_reward_score, model_name=args.backend_prm, temperature=args.temperature, max_tokens=args.max_tokens)
+        
+        # # load reward model
+        # if args.method_evaluate not in ['value', 'vote',"random","self_process_value", "self_result_value"]:
+        #     from models.reward_models.request_gpt import request_gpt
+        #     if args.backend_prm.startswith("Xinternlm"):
+        #         self.prm = partial(gpt, model=args.backend_prm)
+        #     elif args.backend_prm == "gpt-4o" or args.backend_prm.startswith("llama") or args.backend_prm.startswith("Qwen2") or args.backend_prm.startswith("Mistral") or args.backend_prm.startswith("internlm") or args.backend_prm.startswith("QwQ"):
+        #         self.prm = partial(request_gpt, model=args.backend_prm, temperature=args.temperature, max_tokens=args.max_tokens, port = args.port,gpu_memory_utilization = args.reward_gpu_memory_utilization)
         
     def generate_sentences(self, prompt, n_samples, stop=None):
 
@@ -46,7 +61,7 @@ class InferTimeComputation:
         # Extract the last question, avoiding the few-shot examples
         x = extract_last_question(x)
 
-        # self evaluation
+        # 自我评估
         if self.args.method_evaluate == "value":
             values = []
             for y in ys:
@@ -58,7 +73,7 @@ class InferTimeComputation:
                     value = self.task.value_outputs_unwrap(x, y, value_outputs)
                     self.value_cache[value_prompt] = value
                 values.append(value)
-
+        #  自我过程评估：模型评估推理过程的正确性
         elif self.args.method_evaluate == "self_process_value":
             values = []
             for y in ys:
@@ -70,6 +85,7 @@ class InferTimeComputation:
                     value = self.task.value_outputs_unwrap(x, y, value_outputs)
                     self.value_cache[value_prompt] = value
                 values.append(value)
+        #  自我结果评估：模型评估推理结果的正确性
         elif self.args.method_evaluate == "self_result_value":
             values = []
             for y in ys:
@@ -82,10 +98,12 @@ class InferTimeComputation:
                     value = self.task.value_outputs_unwrap(x, y, value_outputs)
                     self.value_cache[value_prompt] = value
                 values.append(value)
+        # 随机
         elif self.args.method_evaluate == "random":
             values = [random.uniform(0, 1) for _ in ys]
 
         #backen_model:  llm_as_binary, llm_as_critical， llm_as_process_reward, llm_as_reuslt_reward
+        # 奖励模型判断答案对错
         elif self.args.method_evaluate == "llm_as_binary":
             values = []
             for y in ys:
@@ -97,6 +115,7 @@ class InferTimeComputation:
                     value = binary_evaluate_unwrap(value_outputs=value_outputs)
                     self.value_cache[value_prompt] = value
                 values.append(value)
+        # llm模型判断推理过程的正确性
         elif self.args.method_evaluate == "llm_as_process_reward":
             values = []
             for y in ys:

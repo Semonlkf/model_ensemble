@@ -1,0 +1,64 @@
+# Multi-model Ensemble Configuration
+# 用于 step_mcts 方法的多模型集成配置
+#
+# 部署规则:
+#   - 生成模型: 使用 vLLM 部署
+#   - 奖励模型: 使用 FastAPI 部署 (serves/ 目录下的各模型服务)
+#
+# 启动顺序:
+#   1. 启动奖励模型: python serves/math_shepherd_prm.py --port 8001 --gpu 0
+#   2. 启动生成模型: CUDA_VISIBLE_DEVICES=1 vllm serve /path/to/model --port 23456
+#   3. 运行主程序:   python run.py --model_pool_config configs/ensemble_example.yaml ...
+
+models:
+  # 推理模型 1: Qwen3-8B
+
+  # - name: "Qwen2.5-0.5B"
+  #   config:
+  #     api_base: "http://127.0.0.1:23456/v1"
+  #     api_key: "EMPTY"
+  #     model_name: "/home/share/models/Qwen2.5-0.5B-Instruct"
+  #     default_temp: 0.6
+
+  - name: "Qwen3-8B"  # 模型池中的标识符
+    config:
+      api_base: "http://localhost:23456/v1"
+      api_key: "EMPTY"
+      model_name: "/mnt/shared-storage-user/marti/models/Qwen3-8B"
+      default_temp: 0.6
+      is_reward_model: false
+  
+  # 奖励模型 (使用 FastAPI 部署，端口 8001)
+  - name: "math_shepherd"
+    config:
+      api_base: "http://localhost:8001"  # FastAPI 服务地址 (不带 /v1 后缀)
+      api_key: "EMPTY"
+      model_name: "peiyi9979/math-shepherd-mistral-7b-prm"
+      default_temp: 0.0  # 奖励模型不需要 temperature
+      is_reward_model: true
+
+  # # 推理模型 2: Qwen2.5-7B-Instruct
+  # - name: "qwen2.5-7b"
+  #   config:
+  #     api_base: "http://localhost:8000/v1"
+  #     api_key: "EMPTY"
+  #     model_name: "Qwen/Qwen2.5-7B-Instruct"
+  #     default_temp: 0.7
+  
+  # # 推理模型 3: Llama-3.1-8B-Instruct
+  # - name: "llama3.1-8b"
+  #   config:
+  #     api_base: "http://localhost:8001/v1"
+  #     api_key: "EMPTY"
+  #     model_name: "meta-llama/Llama-3.1-8B-Instruct"
+  #     default_temp: 0.6
+
+# ==================== 奖励模型服务列表 ====================
+# 各奖励模型的 FastAPI 服务位于 serves/ 目录:
+#   - serves/math_shepherd_prm.py  →  math-shepherd-mistral-7b-prm
+#   - (可扩展添加更多奖励模型服务...)
+#
+# 所有奖励模型服务必须实现统一的 API 接口:
+#   POST /v1/scores
+#   请求: {"model": "name", "input": "text"}
+#   响应: {"data": [{"score": float, "step_scores": [...]}]}
