@@ -112,3 +112,14 @@ python -u run.py \
     --n_evaluate_sample 3 \
     --baseline mcts \
     --model_pool_config configs/ensemble_example.yaml
+
+python -u run.py \
+    --task gsm8k \
+    --task_start_index 0 \
+    --task_end_index 100 \
+    --prompt_sample cot \
+    --method_generate sample \
+    --method_evaluate llm_as_process_reward \
+    --baseline lemcts \
+    --backend_prm math_shepherd \
+    --model_pool_config configs/ensemble_example.yaml
