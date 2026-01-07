@@ -24,7 +24,7 @@ REWARD_GPU=1
 
 # 模型路径 (根据实际情况修改)
 GENERATION_MODEL_PATH="/mnt/shared-storage-user/marti/models/Qwen3-8B"
-REWARD_MODEL_PATH="peiyi9979/math-shepherd-mistral-7b-prm"
+REWARD_MODEL_PATH="/mnt/shared-storage-gpfs2/gpfs2-shared-public/huggingface/zskj-hub/models--peiyi9979--math-shepherd-mistral-7b-prm"
 
 # ============ 创建日志目录 ============
 mkdir -p "$LOG_DIR"
@@ -122,4 +122,5 @@ python -u run.py \
     --method_evaluate llm_as_process_reward \
     --baseline lemcts \
     --backend_prm math_shepherd \
-    --model_pool_config configs/ensemble_example.yaml
+    --model_pool_config configs/ensemble_example.yaml \
+    --debug
