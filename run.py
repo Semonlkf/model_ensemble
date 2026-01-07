@@ -78,19 +78,21 @@ def run(args):
         else:
             completed_count = 0
 
+    search_baseline = ['naive','greedy','omgmcts','majority','best_of_n','beam_search',"ToT_dfs","self_refine","mcts","weighted_majority"]
+    if args.baseline in search_baseline:
+        from methods.search.Infertime_computation import InferTimeComputation
+        single_agent = InferTimeComputation(task, args)
+    else:
+        raise NameError(f"Unknown baseline: {args.baseline}")
+
     for i in range(args.task_start_index, task_end_index):
         print(f"\n{'='*40}")
         print(f"Processing task {i}...")
         print(f"{'='*40}\n")
 
-        search_baseline = ['naive','greedy','omgmcts','majority','best_of_n','beam_search',"ToT_dfs","self_refine","mcts","weighted_majority"]
-        if args.baseline in search_baseline:
-            from methods.search.Infertime_computation import InferTimeComputation
-            x = task.get_input(i)
-            single_agent = InferTimeComputation(task, args)
-            ys, info = single_agent.solve(x, i, to_print=True)
-        else:
-            raise NameError
+        x = task.get_input(i)
+        single_agent.reset()  # Reset cache between tasks
+        ys, info = single_agent.solve(x, i, to_print=True)
 
 
         infos_output = [task.test_output(i, y) for y in ys]
