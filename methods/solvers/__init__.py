@@ -14,6 +14,7 @@ from .beam_search import BeamSearchSolverMixin
 from .mcts import MCTSSolverMixin
 from .dfs import DFSSolverMixin
 from .self_refine import SelfRefineSolverMixin
+from .lemcts import LEMCTSSolverMixin
 
 __all__ = [
     'MCTSNode',
@@ -26,5 +27,6 @@ __all__ = [
     'MCTSSolverMixin',
     'DFSSolverMixin',
     'SelfRefineSolverMixin',
+    'LEMCTSSolverMixin',
 ]
 

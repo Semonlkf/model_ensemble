@@ -27,8 +27,8 @@ from methods.solvers import (
     MCTSSolverMixin,
     DFSSolverMixin,
     SelfRefineSolverMixin,
-    MCTSEnsambleSolverMixin,
-)
+    LEMCTSSolverMixin,
+    )
 
 
 class InferTimeComputation(
@@ -41,7 +41,7 @@ class InferTimeComputation(
     MCTSSolverMixin,
     DFSSolverMixin,
     SelfRefineSolverMixin,
-    MCTSEnsambleSolverMixin,
+    LEMCTSSolverMixin,
 ):
     """
     Main class for inference-time computation.
@@ -56,7 +56,7 @@ class InferTimeComputation(
     - MCTSSolverMixin: Monte Carlo Tree Search
     - DFSSolverMixin: Depth-First Search (Tree-of-Thought)
     - SelfRefineSolverMixin: Self-refinement with feedback
-    - MCTSEnsambleSolverMixin: MCTS ensembling
+    - LEMCTSSolverMixin: LE-MCTS
     """
     
     def __init__(self, task, args):
@@ -253,7 +253,7 @@ class InferTimeComputation(
             return self.solve_dfs(x, idx, to_print)
         elif self.args.baseline == 'self_refine':
             return self.solve_self_refine(x, idx, to_print)
-        elif self.args.baseline == 'mctsem':
-            return self.solve_mctsem(x, idx, to_print)
+        elif self.args.baseline == 'lemcts':
+            return self.solve_lemcts(x, idx, to_print)
         else:
             raise ValueError(f"Unknown baseline method: {self.args.baseline}")
