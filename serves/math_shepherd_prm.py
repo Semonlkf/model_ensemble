@@ -253,7 +253,7 @@ def main():
     import uvicorn
     
     parser = argparse.ArgumentParser(description="Math-Shepherd PRM FastAPI Server")
-    parser.add_argument("--model_path", type=str, default="peiyi9979/math-shepherd-mistral-7b-prm",
+    parser.add_argument("--model_path", type=str, default="/mnt/shared-storage-gpfs2/gpfs2-shared-public/huggingface/zskj-hub/models--peiyi9979--math-shepherd-mistral-7b-prm",
                         help="HuggingFace model path or local path")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Host to bind")
     parser.add_argument("--port", type=int, default=8001, help="Port to bind")

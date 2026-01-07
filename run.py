@@ -169,7 +169,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_pool_config', type=str,default="configs/3model.yaml", help='Use model pool')
     parser.add_argument('--backend', type=str, default="gpt-4o", help= 'the model name if u use one model to tts')
-    parser.add_argument('--backend_prm', type=str, choices=['gpt-4', 'gpt-3.5-turbo', "gpt-4o","llama-3.1-405b" , "llama-3.1-70b","llama-3.1-8b", "Qwen2.5-7B", "Qwen2.5-72B",  "Mistral-7B-Instruct-v0.3", "internlm2_5-step-prover-critic",  "internlm2-1_8b-reward", "QwQ-32B-Preview","Qwen2.5-0.5B"], default="gpt-4o")
+    parser.add_argument('--backend_prm', type=str, default="gpt-4o")
     parser.add_argument("--port", type=int, default=8001, help="Port for the FastAPI service (default is 8001)")
     parser.add_argument('--temperature', type=float, default=0.7)
     parser.add_argument('--top_p', type=float, default=0.9)
