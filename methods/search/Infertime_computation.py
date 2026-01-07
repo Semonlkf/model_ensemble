@@ -18,45 +18,21 @@ from prompts.binary_evaluate import binary_evaluate, binary_evaluate_unwrap
 # Import all solver Mixins
 from methods.solvers import (
     MCTSNode,
-    NaiveSolverMixin,
-    GreedySolverMixin,
-    MajoritySolverMixin,
-    BestOfNSolverMixin,
-    WeightedMajoritySolverMixin,
-    BeamSearchSolverMixin,
-    MCTSSolverMixin,
-    DFSSolverMixin,
-    SelfRefineSolverMixin,
     LEMCTSSolverMixin,
+    CollaborativeBeamSearchSolverMixin,
     )
 
 
 class InferTimeComputation(
-    NaiveSolverMixin,
-    GreedySolverMixin,
-    MajoritySolverMixin,
-    BestOfNSolverMixin,
-    WeightedMajoritySolverMixin,
-    BeamSearchSolverMixin,
-    MCTSSolverMixin,
-    DFSSolverMixin,
-    SelfRefineSolverMixin,
     LEMCTSSolverMixin,
+    CollaborativeBeamSearchSolverMixin,
 ):
     """
     Main class for inference-time computation.
     
     Combines multiple solving strategies through Mixin inheritance:
-    - NaiveSolverMixin: Direct generation without search
-    - GreedySolverMixin: Step-by-step greedy search
-    - MajoritySolverMixin: Majority voting
-    - BestOfNSolverMixin: Best-of-N selection
-    - WeightedMajoritySolverMixin: Weighted majority voting
-    - BeamSearchSolverMixin: Beam search
-    - MCTSSolverMixin: Monte Carlo Tree Search
-    - DFSSolverMixin: Depth-First Search (Tree-of-Thought)
-    - SelfRefineSolverMixin: Self-refinement with feedback
     - LEMCTSSolverMixin: LE-MCTS
+    - CollaborativeBeamSearchSolverMixin: Collaborative Beam Search
     """
     
     def __init__(self, task, args):
@@ -103,13 +79,12 @@ class InferTimeComputation(
         generated = self.llm_pool.generate(prompt, model_name=model_name, n=n_samples, stop=stop)
         return [g.strip() for g in generated]
     
-    def prm(self, model_name: str, prompt: str, return_step_scores: bool = False) -> List[float]:
-        """Get reward score from PRM model."""
+    def get_ppl(self, model_name: str, prompt: str) -> float:
+        """Get perplexity score from the given prompt."""
         if model_name not in self.model_names:
             raise NameError(f"Unknown model: {model_name}")
-        value_outputs = self.llm_pool.get_reward_score(prompt, model_name=model_name, return_step_scores=return_step_scores)
-        return value_outputs
-    
+        return self.llm_pool.calculate_ppl(prompt, model_name=model_name)
+
     def get_values(self, model_name: str, x: str, ys: List[str]) -> List[float]:
         """
         Evaluate candidate solutions and return their values.
@@ -255,5 +230,7 @@ class InferTimeComputation(
             return self.solve_self_refine(x, idx, to_print)
         elif self.args.baseline == 'lemcts':
             return self.solve_lemcts(x, idx, to_print)
+        elif self.args.baseline == 'cbeam_search':
+            return self.solve_cbeam_search(x, idx, to_print)
         else:
             raise ValueError(f"Unknown baseline method: {self.args.baseline}")
